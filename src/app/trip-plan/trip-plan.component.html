@@ -1,0 +1,101 @@
+<div class="container pt-3">
+    <div class="row">
+        <div class="col-md-8 offset-md-4">
+            <form [formGroup]="tripForm">
+                <div formArrayName="trips">
+                    <div *ngFor="let trip of trips.controls; let i = index" [formGroupName]="i">
+                        <div class="row">
+                            <div class="col-md-4 pb-3">
+                                <input formControlName="start" placeholder="Start" class="form-control" />
+                                <small *ngIf="trip.get('start')?.invalid && trip.get('start')?.touched"
+                                    class="text-danger">
+                                    Starting Point is required
+                                </small>
+                            </div>
+                            <div class="col-md-4 pb-3">
+                                <input formControlName="end" placeholder="End" class="form-control" />
+                                <small *ngIf="trip.get('end')?.invalid && trip.get('end')?.touched" class="text-danger">
+                                    Ending Point is required
+                                </small>
+                            </div>
+
+                            <div class="col-md-4">
+                                <button type="button" class="btn btn-sm btn-primary mx-1" (click)="addTrip()">+ Add
+                                    Trip</button>
+                                <button type="button" class="btn btn-sm btn-danger" (click)="removeTrip(i)"
+                                    *ngIf="i!=0">- Remove</button>
+                            </div>
+                            <div class="col-md-12">
+                                <div *ngIf="trip.errors?.['startEndSame'] && trip.touched" class="text-danger">
+                                    Start and End points cannot be the same.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<div class="text-center">
+    <button class="btn btn-sm btn-success" (click)="processTrips()"
+        [disabled]="!tripForm.valid || tripForm.get('trips')?.value.length === 0">Visualize</button>
+</div>
+
+<svg width="100%" height="200">
+    <defs>
+      <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="10" refY="3.5"
+              orient="auto" markerUnits="strokeWidth">
+        <polygon points="0 0, 10 3.5, 0 7" fill="orange" />
+      </marker>
+    </defs>
+  
+    <!-- Loop through all trips -->
+    <ng-container *ngFor="let trip of processedTrips; let i = index">
+      <!-- Start Circle -->
+      <circle
+        [attr.cx]="i * 150 + 50"
+        cy="50"
+        r="5"
+        fill="black" />
+  
+      <!-- Label under Start Circle -->
+      <text
+        [attr.x]="i * 150 + 50"
+        y="70"
+        text-anchor="middle"
+        font-size="12"
+        fill="black">
+        {{ trip.label }}
+      </text>
+  
+      <!-- Connection Line or Curve -->
+      <ng-container *ngIf="i < processedTrips.length">
+        <!-- Straight Line -->
+        <line *ngIf="trip.type === 'straight'"
+              [attr.x1]="i * 150 + 50"
+              y1="50"
+              [attr.x2]="(i + 1) * 150 + 50"
+              y2="50"
+              [attr.stroke]="trip.color"
+              stroke-width="2"
+              [attr.marker-end]="trip.arrow ? 'url(#arrowhead)' : null" />
+  
+        <!-- Curved Path -->
+        <path *ngIf="trip.type === 'curved'"
+              [attr.d]="'M' + (i * 150 + 50) + ',50 Q' + ((i * 150 + 100)) + ',10 ' + ((i + 1) * 150 + 50) + ',50'"
+              fill="transparent"
+              [attr.stroke]="trip.color"
+              stroke-width="2" />
+      </ng-container>
+    </ng-container>
+  
+    <!-- Final end circle, drawn only once after all trips -->
+    <circle
+      *ngIf="processedTrips.length"
+      [attr.cx]="processedTrips.length * 150 + 50"
+      cy="50"
+      r="5"
+      fill="black" />
+  </svg>
+  
